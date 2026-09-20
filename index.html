@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LegalAssistant — Know Your Rights, Find Help</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo: #1B2A4A;
+    --indigo-light: #2C3E63;
+    --marigold: #C98A28;
+    --marigold-dark: #A8721E;
+    --parchment: #F1F1EC;
+    --ink: #21201C;
+    --ink-soft: #57564E;
+    --border: #D8D6CC;
+    --sage: #5F7F65;
+    --sage-bg: #E7EEE8;
+    --white: #FFFFFF;
+    font-size: 16px;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-sizing: border-box;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --parchment: #1C1A16;
+      --ink: #F0EDE4;
+      --ink-soft: #B8B4A6;
+      --border: #3A362C;
+      --white: #262319;
+      --indigo: #4A6099;
+      --indigo-light: #5A72AD;
+      --sage-bg: #223228;
+    }
+  }
+  :root[data-theme="dark"] {
+    --parchment: #1C1A16;
+    --ink: #F0EDE4;
+    --ink-soft: #B8B4A6;
+    --border: #3A362C;
+    --white: #262319;
+    --indigo: #4A6099;
+    --indigo-light: #5A72AD;
+    --sage-bg: #223228;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  body {
+    margin: 0;
+    font-family: 'Work Sans', sans-serif;
+    background: var(--parchment);
+    color: var(--ink);
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  h1, h2, h3 { font-family: 'Source Serif 4', serif; margin: 0; font-weight: 600; }
+
+  header {
+    background: var(--indigo);
+    color: var(--white);
+    padding: env(safe-area-inset-top, 0px) 0 0 0;
+  }
+  .header-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 22px 20px 18px;
+  }
+  header h1 {
+    font-size: 1.5rem;
+    letter-spacing: 0.01em;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .theme-toggle {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .theme-toggle:hover { background: rgba(255,255,255,0.18); }
+  header p {
+    margin: 6px 0 0;
+    color: #C8D0E0;
+    font-size: 0.92rem;
+    max-width: 46ch;
+    line-height: 1.4;
+  }
+
+  nav.tabs {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+  }
+  nav.tabs button {
+    font-family: 'Work Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    padding: 14px 4px;
+    margin-right: 28px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  nav.tabs button.active {
+    color: var(--indigo);
+    border-bottom-color: var(--marigold);
+  }
+  :root[data-theme="dark"] nav.tabs button.active,
+  @media (prefers-color-scheme: dark) { nav.tabs button.active { color: var(--indigo-light); } }
+  nav.tabs button:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--marigold);
+    outline-offset: 2px;
+  }
+
+  main {
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .view { display: none; flex: 1; flex-direction: column; }
+  .view.active { display: flex; }
+
+  /* --- Chat view --- */
+  .disclaimer {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    line-height: 1.45;
+  }
+  .chat-log {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    padding-bottom: 12px;
+    min-height: 240px;
+  }
+  .msg {
+    max-width: 88%;
+    line-height: 1.5;
+    font-size: 0.96rem;
+    padding: 10px 14px;
+    border-radius: 10px;
+  }
+  .msg.bot {
+    background: var(--white);
+    border: 1px solid var(--border);
+    align-self: flex-start;
+    border-top-left-radius: 2px;
+  }
+  .msg.user {
+    background: var(--indigo);
+    color: var(--white);
+    align-self: flex-end;
+    border-top-right-radius: 2px;
+  }
+  .msg.bot .find-help-link {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.88rem;
+    color: var(--marigold-dark);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 4px 0 14px;
+  }
+  .suggestions button {
+    font-family: 'Work Sans', sans-serif;
+    background: var(--white);
+    border: 1px solid var(--border);
+    color: var(--indigo);
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  @media (prefers-color-scheme: dark) { .suggestions button { color: var(--indigo-light); } }
+  :root[data-theme="dark"] .suggestions button { color: var(--indigo-light); }
+  .suggestions button:hover { border-color: var(--marigold); }
+
+  form.chat-input {
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+  form.chat-input input {
+    flex: 1;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 0.95rem;
+    padding: 11px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--white);
+    color: var(--ink);
+  }
+  form.chat-input button {
+    background: var(--marigold);
+    color: #2A2005;
+    border: none;
+    font-weight: 600;
+    font-family: 'Work Sans', sans-serif;
+    padding: 0 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+  }
+  form.chat-input button:hover { background: var(--marigold-dark); }
+
+  /* --- Directory view --- */
+  .search-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .search-row input, .search-row select {
+    font-family: 'Work Sans', sans-serif;
+    font-size: 0.95rem;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--white);
+    color: var(--ink);
+  }
+  .search-row input { flex: 1; }
+  .directory-note {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    margin: 10px 0 16px;
+    line-height: 1.45;
+  }
+  .aid-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .aid-item {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .aid-item:first-child { border-top: 1px solid var(--border); }
+  .aid-item h3 {
+    font-size: 1.05rem;
+    color: var(--indigo);
+  }
+  @media (prefers-color-scheme: dark) { .aid-item h3 { color: var(--indigo-light); } }
+  :root[data-theme="dark"] .aid-item h3 { color: var(--indigo-light); }
+  .aid-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 6px 0 8px;
+  }
+  .tag {
+    font-size: 0.78rem;
+    background: var(--sage-bg);
+    color: var(--sage);
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .aid-item p.desc {
+    margin: 0 0 8px;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .aid-item .contact {
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .aid-item .contact a { color: var(--marigold-dark); text-decoration: none; }
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+  }
+
+  /* --- Learn view --- */
+  .learn-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .learn-item {
+    border-bottom: 1px solid var(--border);
+  }
+  .learn-item:first-child { border-top: 1px solid var(--border); }
+  .learn-item summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .learn-item summary::-webkit-details-marker { display: none; }
+  .learn-item summary .lt-title h3 {
+    font-size: 1.02rem;
+    color: var(--indigo);
+    margin-bottom: 4px;
+  }
+  @media (prefers-color-scheme: dark) { .learn-item summary .lt-title h3 { color: var(--indigo-light); } }
+  :root[data-theme="dark"] .learn-item summary .lt-title h3 { color: var(--indigo-light); }
+  .learn-item summary .lt-cat {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+  }
+  .learn-item summary .chevron {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--ink-soft);
+    transition: transform 0.15s;
+  }
+  .learn-item[open] summary .chevron { transform: rotate(180deg); }
+  .learn-body {
+    padding: 0 0 20px;
+    font-size: 0.93rem;
+    line-height: 1.55;
+  }
+  .learn-body h4 {
+    font-family: 'Work Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 14px 0 6px;
+  }
+  .learn-body p { margin: 0; color: var(--ink-soft); }
+  .learn-body .law-name {
+    display: inline-block;
+    background: var(--sage-bg);
+    color: var(--sage);
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .learn-body ol {
+    margin: 4px 0 0;
+    padding-left: 20px;
+    color: var(--ink-soft);
+  }
+  .learn-body ol li { margin-bottom: 6px; }
+  .learn-body .help-note {
+    margin-top: 14px;
+    font-size: 0.88rem;
+    color: var(--marigold-dark);
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: underline;
+    display: inline-block;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-top">
+      <h1>LegalAssistant</h1>
+      <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <svg id="themeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+      </button>
+    </div>
+    <p>Plain-language answers to common legal questions, and free legal help near you.</p>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="active" data-view="chat">Ask a question</button>
+  <button data-view="learn">Learn about the law</button>
+  <button data-view="directory">Find legal aid</button>
+</nav>
+
+<main>
+
+  <section class="view active" id="view-chat">
+    <div class="disclaimer">This gives general information, not legal advice, and can make mistakes. For your specific situation, please contact a legal aid clinic in the Find Help tab.</div>
+    <div class="chat-log" id="chatLog"></div>
+    <div class="suggestions" id="suggestions"></div>
+    <form class="chat-input" id="chatForm">
+      <input type="text" id="chatInput" placeholder="Type your question, e.g. my landlord won't return my deposit…" autocomplete="off">
+      <button type="submit">Ask</button>
+    </form>
+  </section>
+
+  <section class="view" id="view-learn">
+    <div class="search-row">
+      <input type="text" id="learnSearch" placeholder="Search a topic, e.g. eviction, RTI, wages…">
+      <select id="learnCategory">
+        <option value="">All categories</option>
+      </select>
+    </div>
+    <div class="directory-note">General information for learning purposes, not a substitute for advice from a lawyer or the Find Legal Aid tab.</div>
+    <div class="learn-list" id="learnList"></div>
+  </section>
+
+  <section class="view" id="view-directory">
+    <div class="search-row">
+      <input type="text" id="dirSearch" placeholder="Search by city or issue…">
+      <select id="dirCity">
+        <option value="">All cities</option>
+      </select>
+    </div>
+    <div class="directory-note">Sample directory for this prototype — before real-world use, verify each contact and expand coverage city by city.</div>
+    <div class="aid-list" id="aidList"></div>
+  </section>
+
+</main>
+
+<footer>Built for LexHack 2026 · Access to Justice &amp; Civic Tech track</footer>
+
+<script>
+// ---------- Knowledge base ----------
+const KB = [
+  {
+    keywords: ["deposit", "security deposit", "advance", "landlord not returning", "deposit wapas"],
+    question: "My landlord isn't returning my security deposit",
+    answer: "In most rental agreements, the landlord must return your deposit within an agreed period after you vacate, minus any documented damage or unpaid dues. Send a written request (email or registered letter) asking for the deposit with a deadline. If they still refuse, you can approach the Rent Authority in states with a Model Tenancy Act, or file a case in the Consumer Court or Rent Court depending on your state's rules. Keep your rental agreement, move-out photos, and all messages as evidence."
+  },
+  {
+    keywords: ["eviction", "landlord evict", "kick me out", "notice to vacate"],
+    question: "Can my landlord evict me without notice?",
+    answer: "No — a landlord generally cannot evict a tenant without following due process: proper written notice (usually 15–30 days depending on your state and lease terms) and, if you don't leave voluntarily, a court or rent-tribunal order. Illegal methods like cutting electricity/water or forcibly removing belongings are not allowed. Keep your rental agreement and any notices you receive."
+  },
+  {
+    keywords: ["rent increase", "landlord raising rent", "rent hike"],
+    question: "Can my landlord increase rent whenever they want?",
+    answer: "Rent increases should follow what's written in your rental agreement. If the agreement specifies an annual increase percentage, the landlord should stick to it. A mid-term increase outside the agreed terms can usually be contested. Always get any increase in writing."
+  },
+  {
+    keywords: ["defective product", "faulty product", "refund", "product not working", "warranty"],
+    question: "I bought a defective product and the seller won't refund me",
+    answer: "Under the Consumer Protection Act, you have the right to a refund, replacement, or repair for defective goods, especially within the warranty period. First send a written complaint to the seller/company with proof of purchase. If unresolved, you can file a complaint on the National Consumer Helpline (1915) or e-Daakhil portal, or approach the District Consumer Disputes Redressal Commission — no lawyer is required for claims and it's designed to be accessible."
+  },
+  {
+    keywords: ["online fraud", "cheated online", "fake seller", "scam purchase"],
+    question: "I was cheated by an online seller",
+    answer: "Report it to the National Consumer Helpline (1915) or via the e-Daakhil portal for a consumer complaint, and separately file a cybercrime complaint at cybercrime.gov.in or call 1930 if money was involved, since online fraud can also be a criminal matter. Save all chat logs, payment receipts, and screenshots as evidence."
+  },
+  {
+    keywords: ["salary not paid", "employer not paying", "unpaid wages", "salary delay"],
+    question: "My employer hasn't paid my salary",
+    answer: "Unpaid wages can be raised with your state's Labour Commissioner's office, which handles wage disputes for most employees. Keep your appointment letter, payslips, and any written communication about the unpaid amount. For a formal complaint, you can also use the Shram Suvidha portal in many states."
+  },
+  {
+    keywords: ["harassment", "workplace harassment", "sexual harassment", "posh"],
+    question: "I'm facing harassment at my workplace",
+    answer: "Under the POSH Act, every workplace with 10+ employees must have an Internal Complaints Committee (ICC) to handle sexual harassment complaints confidentially. You can file a written complaint with the ICC within 3 months of the incident (extendable). If there's no ICC, or you're unsatisfied with the process, you can approach the Local Complaints Committee set up by the district. You do not have to handle this alone — a legal aid clinic can help you word your complaint."
+  },
+  {
+    keywords: ["wrongful termination", "fired unfairly", "terminated without notice", "layoff"],
+    question: "I was fired without proper notice or reason",
+    answer: "Your notice period and termination terms are usually governed by your appointment letter and, for some categories of workers, the Industrial Disputes Act. If you believe the termination was unfair or notice wasn't honoured, you can raise it with the Labour Commissioner's office. Keep your appointment letter, termination communication, and any performance records."
+  },
+  {
+    keywords: ["rti", "right to information", "government not responding", "file rti"],
+    question: "How do I get information from a government office?",
+    answer: "You can file a Right to Information (RTI) request with any public authority. Write a simple application stating what information you need, pay a small fee (usually ₹10), and submit it to the Public Information Officer of that department, either online via rtionline.gov.in (for central government) or your state's RTI portal. They must respond within 30 days."
+  },
+  {
+    keywords: ["consumer complaint", "how to file complaint", "e-daakhil"],
+    question: "How do I file a consumer complaint?",
+    answer: "You can file it yourself, without a lawyer, on the e-Daakhil portal (edaakhil.nic.in) or by calling the National Consumer Helpline at 1915. You'll need proof of purchase, details of the issue, and proof that you tried to resolve it with the seller first. Claims can be filed in District, State, or National Consumer Commissions depending on the amount involved."
+  },
+  {
+    keywords: ["free lawyer", "cannot afford lawyer", "legal aid", "free legal help"],
+    question: "I can't afford a lawyer — is free legal help available?",
+    answer: "Yes. Under the Legal Services Authorities Act, free legal aid is available to eligible groups (including women, SC/ST, people with low income, and others) through the National/State/District Legal Services Authority. You can call the NALSA helpline at 15100 or visit your nearest District Legal Services Authority office. Check the Find Help tab for contacts."
+  },
+  {
+    keywords: ["domestic violence", "abuse at home", "protection order"],
+    question: "I'm facing domestic violence and need protection",
+    answer: "Under the Protection of Women from Domestic Violence Act, you can approach a Protection Officer, the police, or file directly in a Magistrate's Court for a protection order, residence order, or maintenance. The Women Helpline (181) is available 24/7 for immediate support and guidance. You don't need to have already left the home to seek a protection order."
+  },
+  {
+    keywords: ["police harassment", "police harassing", "policeman harass", "cop harassing", "police misconduct", "false case", "police brutality", "wrongfully arrested", "custodial", "police threatening"],
+    question: "A police officer is harassing me / misusing their authority",
+    answer: "Police must follow proper legal procedure — you have the right to know the grounds of any detention or arrest, to inform a family member or friend, and to consult a lawyer. Note the date, time, place, and the officer's name/badge number. File a written complaint with the district's Superintendent of Police (SP), or your State Police's online grievance portal. For serious issues like custodial violence or wrongful detention, approach the State or National Human Rights Commission (nhrc.nic.in) or a Magistrate directly."
+  },
+  {
+    keywords: ["pf not deposited", "provident fund", "epf", "pf withdrawal", "uan"],
+    question: "My employer isn't depositing my Provident Fund (PF)",
+    answer: "Employers must deposit both employee and employer PF contributions monthly. Check your PF passbook on the EPFO member e-Sewa portal to confirm missing deposits. Raise a grievance on the EPFiGMS portal (epfigms.gov.in) with your UAN and employer details, or file a complaint at your regional EPFO office. For delayed withdrawals, track your claim online and escalate via the same grievance portal."
+  },
+  {
+    keywords: ["gratuity not paid", "gratuity refused", "gratuity"],
+    question: "My employer is refusing to pay gratuity",
+    answer: "If you've completed 5+ years of continuous service, you're entitled to gratuity on leaving your job. Submit Form I to your employer within 30 days of leaving, requesting payment. If unpaid within 30 days, file a complaint with the Controlling Authority (usually the Labour Commissioner's office), keeping your appointment letter, relieving letter, and salary records as proof."
+  },
+  {
+    keywords: ["maternity leave", "maternity benefit", "pregnant fired", "pregnancy dismissal"],
+    question: "My maternity leave or benefits are being denied",
+    answer: "Women employees are entitled to 26 weeks of paid maternity leave (for the first two children) and cannot be dismissed during pregnancy or maternity leave. Inform your employer in writing about your leave dates. If benefits are denied or you're dismissed during this period, report it to the Labour Commissioner's office, keeping medical records and written communication as evidence."
+  },
+  {
+    keywords: ["discrimination at work", "workplace discrimination", "caste discrimination", "unequal pay", "gender discrimination office"],
+    question: "I'm facing discrimination at my workplace",
+    answer: "Discrimination based on gender, caste, religion, disability, or unequal pay for equal work goes against constitutional and statutory protections. Document specific incidents with dates and witnesses, and raise it with HR in writing first. Depending on the type, you can escalate to the Labour Commissioner, the SC/ST Commission, the Disability Commissioner, or a civil court — a legal aid clinic can help identify the right forum."
+  },
+  {
+    keywords: ["dowry harassment", "dowry demand", "498a", "in laws harassing"],
+    question: "I'm facing dowry harassment",
+    answer: "Harassment by a husband or his relatives for dowry, including cruelty, is a criminal offence. File a police complaint (FIR) at your local station, or call the Women Helpline (181) for guidance, including locating a Mahila police station if available. You can simultaneously seek civil relief — a protection order, residence, or maintenance — under the Domestic Violence Act. Keep messages, witness accounts, and medical records as evidence."
+  },
+  {
+    keywords: ["maintenance", "alimony", "spouse not supporting", "husband not paying"],
+    question: "I need maintenance/alimony from my spouse",
+    answer: "A spouse (and children) unable to maintain themselves can claim maintenance regardless of religion. File an application in the Family Court or Magistrate's Court in your jurisdiction, or request monetary relief as part of a Domestic Violence Act petition. Gather proof of your spouse's income and your financial needs — a legal aid clinic or NALSA can help file this at no cost if you're eligible."
+  },
+  {
+    keywords: ["restraining order", "protection order", "keep him away", "no contact order"],
+    question: "How do I get a restraining order against an abuser?",
+    answer: "A Magistrate can issue a Protection Order restraining the abuser from further violence, contact, or entering your home/workplace. File a Domestic Incident Report with a Protection Officer, the police, or petition a Magistrate directly — courts can issue interim orders quickly. Violating a Protection Order is itself a criminal offence, giving it real enforcement power."
+  },
+  {
+    keywords: ["need shelter", "safe place to stay", "leave home abuse", "one stop centre", "sakhi centre"],
+    question: "I need a safe place to stay away from an abuser",
+    answer: "You have the right to request shelter at a government shelter home. Call the Women Helpline (181) to be connected to the nearest shelter home or One Stop Centre (also called Sakhi Centre), which combines medical aid, police assistance, legal aid, and counselling in one place. A Protection Officer can also arrange shelter as part of your case."
+  },
+  {
+    keywords: ["locked out", "landlord locked", "illegal lockout", "changed locks"],
+    question: "My landlord locked me out illegally",
+    answer: "A landlord cannot forcibly evict you by changing locks, removing belongings, or cutting utilities — these are illegal 'self-help' evictions, regardless of any pending rent dispute. File a police complaint immediately, and approach the Rent Court or Magistrate for an urgent restoration order. Keep your rental agreement and rent receipts as evidence."
+  },
+  {
+    keywords: ["property inheritance", "ancestral property", "succession dispute", "property share family"],
+    question: "I'm in a family property inheritance dispute",
+    answer: "Inheritance rights depend on your personal law (Hindu, Muslim, Christian, etc.) and whether the deceased left a valid will. If no will exists, succession follows your personal law's intestate rules. You may need a legal heir/succession certificate from a civil court to transfer assets. If a family member denies your rightful share, send a legal notice through a lawyer before filing a partition suit."
+  },
+  {
+    keywords: ["land encroachment", "boundary dispute", "neighbor encroaching"],
+    question: "My neighbor is encroaching on my land",
+    answer: "Get your land measured and boundaries verified via the local revenue/survey office first. Send a legal notice to the encroacher demanding removal. If unresolved, file a suit for injunction and possession in civil court, using your sale deed and mutation records as evidence."
+  },
+  {
+    keywords: ["cyberbullying", "online harassment", "online abuse", "trolling", "cyberstalking"],
+    question: "I'm facing cyberbullying or online harassment",
+    answer: "Take screenshots of the harassment with timestamps and usernames before blocking the person. Report the content/account to the platform directly. File a complaint at cybercrime.gov.in or call the Cyber Crime Helpline (1930). For serious threats, also file a police complaint at your local station."
+  },
+  {
+    keywords: ["revenge porn", "images shared without consent", "morphed photos", "blackmail photos"],
+    question: "My intimate images were shared without consent",
+    answer: "Do not engage with the blackmailer or pay any demanded money. Report immediately at cybercrime.gov.in (which has a dedicated section for this) or call 1930. Ask the platform to remove the content using its non-consensual content reporting tool, and file a police complaint — this is treated as a serious offence."
+  },
+  {
+    keywords: ["otp fraud", "upi fraud", "otp scam", "bank fraud call"],
+    question: "I lost money to an OTP/UPI scam",
+    answer: "Call your bank's fraud helpline immediately to block further transactions. Report within a few hours on the Cyber Crime Helpline (1930) or cybercrime.gov.in — early reporting can help freeze the fraudulent transaction. Also file a written complaint with your bank citing RBI's limited liability guidelines, and keep transaction SMS/screenshots as evidence."
+  },
+  {
+    keywords: ["data leak", "data privacy", "personal data misuse", "data breach"],
+    question: "My personal data was misused or leaked",
+    answer: "Document how and where your data was misused. File a complaint with the organization's Grievance Officer — companies handling personal data must have one. For serious cases, file a complaint at cybercrime.gov.in, and for identity theft, also file a police complaint."
+  },
+  {
+    keywords: ["fir refused", "police not registering", "police not filing complaint"],
+    question: "Police are refusing to file my FIR",
+    answer: "Police are legally required to register an FIR for cognizable offences. Submit your complaint in writing and ask for an acknowledgment. If refused, send the complaint by registered post to the Superintendent of Police, who can order registration, or approach the Magistrate directly to direct police to register it."
+  },
+  {
+    keywords: ["bail process", "how to get bail", "anticipatory bail"],
+    question: "How does the bail process work?",
+    answer: "For bailable offences, bail is a right and can often be granted at the police station itself. For non-bailable offences, bail must be sought from a Magistrate or higher court. If you anticipate arrest, you can apply for anticipatory bail in advance from the Sessions or High Court. A free legal aid lawyer can be assigned if you can't afford one."
+  },
+  {
+    keywords: ["cheque bounce", "cheque dishonour", "post dated cheque bounced"],
+    question: "A cheque I received has bounced",
+    answer: "Send a legal demand notice to the cheque issuer within 30 days of the bounce, demanding payment within 15 days. If unpaid after that, file a criminal complaint in the relevant Magistrate's Court within 1 month. Keep the bounced cheque, bank return memo, and notice copies as evidence."
+  },
+  {
+    keywords: ["defamation", "false accusations public", "character assassination"],
+    question: "Someone is defaming me publicly",
+    answer: "Defamation can be pursued as both a civil suit for damages and a criminal complaint. Document the defamatory statement (screenshots, witnesses, publication details), then send a legal notice demanding retraction/apology before escalating to a Magistrate's Court or civil suit. For online defamation, also report to the platform for content removal."
+  },
+  {
+    keywords: ["builder delay", "possession delay", "rera complaint", "flat possession"],
+    question: "My builder is delaying possession of my flat",
+    answer: "Check if the project is registered with your state's RERA authority (usually searchable online). File a complaint on your state RERA portal citing the agreement's promised possession date — RERA can order compensation, interest on delay, or a refund with interest. Keep your builder-buyer agreement and payment receipts as evidence."
+  },
+  {
+    keywords: ["medical negligence", "doctor negligence", "hospital negligence", "wrong treatment"],
+    question: "I'm facing medical negligence",
+    answer: "Collect all medical records, prescriptions, and reports related to the treatment. File a complaint with the State Medical Council against the doctor/hospital for professional misconduct, and separately file a consumer complaint via e-Daakhil seeking compensation. For serious harm, consult a lawyer about a civil suit for damages."
+  },
+  {
+    keywords: ["insurance claim rejected", "insurance denied", "health insurance rejected"],
+    question: "My insurance claim was wrongly rejected",
+    answer: "Request the rejection reason in writing from the insurer. File a complaint with the Insurance Ombudsman (free, no lawyer needed) if you disagree, or file a consumer complaint via e-Daakhil for deficiency in service. Keep your policy document, claim form, and all correspondence as evidence."
+  },
+  {
+    keywords: ["loan recovery harassment", "bank harassment", "recovery agent threatening"],
+    question: "Bank/recovery agents are harassing me over a loan",
+    answer: "Recovery agents must follow RBI's fair practices code — threats, public humiliation, or odd-hour contact aren't permitted. Document the harassment (recordings, messages, times) and file a written complaint with the bank's Grievance Redressal Officer, escalating to the RBI Banking Ombudsman if unresolved. You can also file a police complaint if agents use threats."
+  },
+  {
+    keywords: ["notice period dispute", "resignation dues withheld", "relieving letter refused"],
+    question: "My employer is withholding dues over my notice period",
+    answer: "Review your appointment letter for the exact notice period and buyout clause. Request your full and final settlement and relieving letter in writing, referencing the contract terms. If withheld unreasonably, raise a complaint with the Labour Commissioner's office or Shops and Establishments authority."
+  },
+  {
+    keywords: ["gig worker rights", "contract worker rights", "freelancer rights", "delivery partner rights"],
+    question: "What are my rights as a contract or gig worker?",
+    answer: "Contract and gig workers have more limited protections than full-time employees, but coverage is expanding. Check if your platform is registered for gig worker welfare schemes in your state. If you're a contract worker under a principal employer, minimum wage and safety compliance may apply under the Contract Labour Act. Unpaid dues can still be raised with the Labour Commissioner's office."
+  },
+  {
+    keywords: ["minimum wage violation", "underpaid", "below minimum wage"],
+    question: "I'm being paid below minimum wage",
+    answer: "Check your state's notified minimum wage for your job category and skill level. Keep payslips or wage records as proof of underpayment, and file a complaint with your state's Labour Commissioner's office. Group complaints with coworkers facing the same issue are permitted and can be more effective."
+  },
+  {
+    keywords: ["divorce process", "how to file divorce", "mutual divorce", "contested divorce"],
+    question: "How does the divorce process work?",
+    answer: "Divorce can be mutual (both spouses agree) or contested, with the applicable law depending on how your marriage was registered. Mutual consent divorce is typically faster, with both spouses jointly filing a petition. Contested divorce requires proving grounds like cruelty or desertion in Family Court. A legal aid clinic can provide a free lawyer if you're eligible."
+  },
+  {
+    keywords: ["child custody", "custody dispute", "custody of children"],
+    question: "How is child custody decided during separation?",
+    answer: "Custody decisions are based on the child's best interests, not automatically favoring either parent. File a custody petition in Family Court, either with your divorce case or separately. Courts consider the child's age, needs, and preference if old enough. Interim custody/visitation can be requested while the case is pending."
+  },
+  {
+    keywords: ["senior citizen rights", "elder abuse", "parents neglected", "old age harassment"],
+    question: "My elderly parent is being neglected or abused by family",
+    answer: "Senior citizens have a legal right to maintenance from their children. File an application before the Maintenance Tribunal in your district — no lawyer required, designed to be fast. If property was transferred to children on condition of care, and that care is denied, the transfer can be reversed under the law. Call the Senior Citizens' Helpline (14567) for guidance."
+  },
+  {
+    keywords: ["live in relationship rights", "live-in partner rights"],
+    question: "What are my rights in a live-in relationship?",
+    answer: "Courts recognize certain rights for partners in a live-in relationship resembling marriage, including protection under the Domestic Violence Act (protection orders, residence rights, monetary relief). Maintenance claims are more case-specific and depend on the relationship's nature and duration. Children from the relationship have the same legal rights as those born in marriage."
+  },
+  {
+    keywords: ["whistleblower", "reporting corruption", "corporate fraud reporting"],
+    question: "How do I report corruption or wrongdoing safely?",
+    answer: "For government corruption, file a complaint with the Central Vigilance Commission (cvc.gov.in) or your state's Lokayukta — often confidentially, to protect your identity. For private-sector fraud, check if your company has an internal whistleblower policy. Serious financial fraud can also be reported to SEBI (for listed companies) or the Serious Fraud Investigation Office."
+  }
+];
+
+const FALLBACK = "I don't have a plain-language answer for that specific question yet in this prototype. For a real answer, please reach out to a legal aid clinic — check the Find Help tab for one near you.";
+
+// ---------- Directory data (sample) ----------
+const AID_CENTERS = [
+  { name: "NALSA Helpline", city: "All India", tags: ["Free legal aid", "Any issue"], desc: "National toll-free helpline connecting you to your nearest State/District Legal Services Authority.", contact: "Call 15100" },
+  { name: "National Consumer Helpline", city: "All India", tags: ["Consumer complaints"], desc: "Government helpline for product/service complaints, refunds, and guidance on filing with the Consumer Commission.", contact: "Call 1915" },
+  { name: "Women Helpline", city: "All India", tags: ["Domestic violence", "Harassment"], desc: "24/7 helpline for women facing violence, harassment, or abuse, with referral to protection officers and shelters.", contact: "Call 181" },
+  { name: "National Human Rights Commission (NHRC)", city: "All India", tags: ["Police misconduct", "Human rights"], desc: "Handles complaints of police harassment, custodial violence, wrongful detention, and other human rights violations by public authorities.", contact: "nhrc.nic.in · Call 011-23385368" },
+  { name: "National Human Rights Commission (NHRC)", city: "All India", tags: ["Police misconduct", "Human rights"], desc: "Handles complaints of police harassment, custodial violence, wrongful detention, and other human rights violations by public authorities.", contact: "nhrc.nic.in · Call 011-23385368" },
+  { name: "National Cyber Crime Reporting Portal", city: "All India", tags: ["Cyber crime", "Online fraud"], desc: "Report cybercrimes including online fraud, harassment, and non-consensual image sharing.", contact: "cybercrime.gov.in · Call 1930" },
+  { name: "Employees' Provident Fund Organisation (EPFO)", city: "All India", tags: ["PF", "Gratuity", "Workplace"], desc: "Handles PF deposit, withdrawal, and employer-compliance complaints via the EPFiGMS grievance portal.", contact: "epfigms.gov.in · Call 1800-118-005" },
+  { name: "National Commission for Women (NCW)", city: "All India", tags: ["Domestic violence", "Dowry", "Workplace harassment"], desc: "Handles complaints related to violence against women, dowry harassment, and workplace harassment; can intervene with police/authorities.", contact: "ncw.nic.in · Call 7827170170" },
+  { name: "One Stop Centre (Sakhi)", city: "All India", tags: ["Domestic violence", "Shelter"], desc: "Provides medical aid, police assistance, legal aid, and shelter referral for women facing violence, all under one roof, in most districts.", contact: "Call 181 to locate nearest centre" },
+  { name: "Insurance Ombudsman", city: "All India", tags: ["Insurance"], desc: "Free grievance redressal for insurance claim disputes, without needing a lawyer.", contact: "cioins.co.in" },
+  { name: "RBI Banking Ombudsman", city: "All India", tags: ["Banking", "Loan harassment"], desc: "Handles complaints against banks, including unfair loan recovery practices and service deficiencies.", contact: "rbi.org.in" },
+  { name: "Senior Citizens Helpline", city: "All India", tags: ["Elder abuse", "Maintenance"], desc: "Support and guidance for elderly individuals facing neglect, abuse, or maintenance disputes with family.", contact: "Call 14567" },
+  { name: "Central Vigilance Commission (CVC)", city: "All India", tags: ["Corruption", "Whistleblower"], desc: "Handles complaints of corruption in government departments and public sector organisations, with confidential reporting options.", contact: "cvc.gov.in" },
+  { name: "iProbono Legal Aid Clinic", city: "All India (online)", tags: ["Free legal aid", "Online consult"], desc: "Nonprofit offering pro-bono legal guidance for civil, consumer, and rights-based issues via online intake.", contact: "iprobono.org" },
+
+  { name: "Andhra Pradesh State Legal Services Authority", city: "Amaravati", tags: ["Free legal aid"], desc: "Provides free legal aid, Lok Adalat access, and legal literacy programs for eligible residents of Andhra Pradesh.", contact: "NALSA Helpline: 15100" },
+  { name: "Arunachal Pradesh State Legal Services Authority", city: "Itanagar", tags: ["Free legal aid"], desc: "Provides free legal aid and mediation support for eligible residents of Arunachal Pradesh.", contact: "NALSA Helpline: 15100" },
+  { name: "Assam State Legal Services Authority", city: "Dispur", tags: ["Free legal aid"], desc: "Provides free legal aid, Lok Adalat access, and legal literacy camps across Assam.", contact: "aslsa.assam.gov.in" },
+  { name: "Bihar State Legal Services Authority", city: "Patna", tags: ["Free legal aid"], desc: "Provides free legal aid and District Legal Services Authority support across Bihar.", contact: "NALSA Helpline: 15100" },
+  { name: "Chhattisgarh State Legal Services Authority", city: "Raipur", tags: ["Free legal aid"], desc: "Coordinates free legal services and Lok Adalats for eligible residents of Chhattisgarh.", contact: "NALSA Helpline: 15100" },
+  { name: "Goa State Legal Services Authority", city: "Panaji", tags: ["Free legal aid"], desc: "Provides free legal aid and legal awareness programs for eligible residents of Goa.", contact: "NALSA Helpline: 15100" },
+  { name: "Gujarat State Legal Services Authority", city: "Gandhinagar", tags: ["Free legal aid"], desc: "Coordinates legal aid clinics, mediation centres, and Lok Adalats across Gujarat.", contact: "NALSA Helpline: 15100" },
+  { name: "Haryana State Legal Services Authority", city: "Chandigarh", tags: ["Free legal aid"], desc: "Provides free legal aid and District Legal Services Authority support across Haryana.", contact: "NALSA Helpline: 15100" },
+  { name: "Himachal Pradesh State Legal Services Authority", city: "Shimla", tags: ["Free legal aid"], desc: "Provides free legal aid and legal literacy camps across Himachal Pradesh.", contact: "NALSA Helpline: 15100" },
+  { name: "Jharkhand State Legal Services Authority", city: "Ranchi", tags: ["Free legal aid"], desc: "Provides free legal aid, Lok Adalat access, and legal literacy programs across Jharkhand.", contact: "jhalsa.org" },
+  { name: "Karnataka State Legal Services Authority", city: "Bengaluru", tags: ["Free legal aid", "Workplace"], desc: "Free legal representation and Lok Adalat (settlement court) access for eligible applicants.", contact: "kslsa.kar.nic.in" },
+  { name: "Kerala State Legal Services Authority", city: "Thiruvananthapuram", tags: ["Free legal aid"], desc: "Provides free legal aid and Lok Adalat access for eligible residents of Kerala.", contact: "kelsa.keralacourts.in" },
+  { name: "Madhya Pradesh State Legal Services Authority", city: "Bhopal", tags: ["Free legal aid"], desc: "Coordinates legal aid clinics and Lok Adalats across Madhya Pradesh.", contact: "NALSA Helpline: 15100" },
+  { name: "Maharashtra State Legal Services Authority", city: "Mumbai", tags: ["Free legal aid"], desc: "Legal aid clinics across Maharashtra for low-income residents, including labour and consumer matters.", contact: "NALSA Helpline: 15100" },
+  { name: "Manipur State Legal Services Authority", city: "Imphal", tags: ["Free legal aid"], desc: "Provides free legal aid and legal literacy programs across Manipur.", contact: "NALSA Helpline: 15100" },
+  { name: "Meghalaya State Legal Services Authority", city: "Shillong", tags: ["Free legal aid"], desc: "Provides free legal aid and mediation support across Meghalaya.", contact: "NALSA Helpline: 15100" },
+  { name: "Mizoram State Legal Services Authority", city: "Aizawl", tags: ["Free legal aid"], desc: "Provides free legal aid through panel lawyers and Lok Adalats across Mizoram.", contact: "NALSA Helpline: 15100" },
+  { name: "Nagaland State Legal Services Authority", city: "Kohima", tags: ["Free legal aid"], desc: "Provides free legal aid and legal literacy camps across Nagaland.", contact: "NALSA Helpline: 15100" },
+  { name: "Odisha State Legal Services Authority", city: "Bhubaneswar", tags: ["Free legal aid"], desc: "Coordinates legal aid clinics and Lok Adalats across Odisha.", contact: "NALSA Helpline: 15100" },
+  { name: "Punjab State Legal Services Authority", city: "Chandigarh", tags: ["Free legal aid"], desc: "Provides free and competent legal services to weaker sections of society across Punjab.", contact: "NALSA Helpline: 15100" },
+  { name: "Rajasthan State Legal Services Authority", city: "Jaipur", tags: ["Free legal aid"], desc: "Coordinates legal aid clinics and Lok Adalats across Rajasthan.", contact: "NALSA Helpline: 15100" },
+  { name: "Sikkim State Legal Services Authority", city: "Gangtok", tags: ["Free legal aid"], desc: "Provides free legal aid and legal literacy programs across Sikkim.", contact: "NALSA Helpline: 15100" },
+  { name: "Tamil Nadu State Legal Services Authority", city: "Chennai", tags: ["Free legal aid"], desc: "District-level legal aid clinics and helpline support across Tamil Nadu.", contact: "NALSA Helpline: 15100" },
+  { name: "Telangana State Legal Services Authority", city: "Hyderabad", tags: ["Free legal aid"], desc: "Coordinates legal aid clinics and Lok Adalats across Telangana.", contact: "NALSA Helpline: 15100" },
+  { name: "Tripura State Legal Services Authority", city: "Agartala", tags: ["Free legal aid"], desc: "Provides free legal aid and legal literacy programs across Tripura.", contact: "NALSA Helpline: 15100" },
+  { name: "Uttar Pradesh State Legal Services Authority", city: "Lucknow", tags: ["Free legal aid"], desc: "Coordinates legal aid clinics and Lok Adalats across Uttar Pradesh.", contact: "NALSA Helpline: 15100" },
+  { name: "Uttarakhand State Legal Services Authority", city: "Dehradun", tags: ["Free legal aid"], desc: "Provides free legal aid and legal literacy camps across Uttarakhand.", contact: "NALSA Helpline: 15100" },
+  { name: "West Bengal State Legal Services Authority", city: "Kolkata", tags: ["Free legal aid"], desc: "Coordinates legal aid clinics and Lok Adalats across West Bengal.", contact: "NALSA Helpline: 15100" },
+
+  { name: "Andaman & Nicobar Islands Legal Services Authority", city: "Port Blair", tags: ["Free legal aid"], desc: "Provides free legal aid for eligible residents of the Andaman & Nicobar Islands.", contact: "NALSA Helpline: 15100" },
+  { name: "Chandigarh Legal Services Authority", city: "Chandigarh", tags: ["Free legal aid"], desc: "Provides free legal aid and court-related assistance for residents of the Union Territory of Chandigarh.", contact: "NALSA Helpline: 15100" },
+  { name: "Dadra & Nagar Haveli and Daman & Diu Legal Services Authority", city: "Daman", tags: ["Free legal aid"], desc: "Provides free legal aid for eligible residents of the Union Territory.", contact: "NALSA Helpline: 15100" },
+  { name: "Delhi State Legal Services Authority", city: "Delhi", tags: ["Free legal aid", "Tenant rights"], desc: "Provides free lawyers and mediation for eligible residents of Delhi, including tenancy and family disputes.", contact: "dslsa.org" },
+  { name: "Jammu & Kashmir Legal Services Authority", city: "Srinagar / Jammu", tags: ["Free legal aid"], desc: "Provides free legal aid for eligible residents of Jammu & Kashmir.", contact: "NALSA Helpline: 15100" },
+  { name: "Ladakh Legal Services Authority", city: "Leh", tags: ["Free legal aid"], desc: "Provides free legal aid for eligible residents of Ladakh.", contact: "NALSA Helpline: 15100" },
+  { name: "Lakshadweep Legal Services Authority", city: "Kavaratti", tags: ["Free legal aid"], desc: "Provides free legal aid for eligible residents of Lakshadweep.", contact: "NALSA Helpline: 15100" },
+  { name: "Puducherry Legal Services Authority", city: "Puducherry", tags: ["Free legal aid"], desc: "Provides free legal aid and Lok Adalat access for eligible residents of Puducherry.", contact: "NALSA Helpline: 15100" },
+];
+
+// ---------- Chat logic ----------
+const chatLog = document.getElementById('chatLog');
+const chatForm = document.getElementById('chatForm');
+const chatInput = document.getElementById('chatInput');
+const suggestionsEl = document.getElementById('suggestions');
+
+function addMessage(text, sender, withFindHelp) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + sender;
+  div.textContent = text;
+  if (withFindHelp) {
+    const link = document.createElement('div');
+    link.className = 'find-help-link';
+    link.textContent = 'Find legal aid near me →';
+    link.onclick = () => switchView('directory');
+    div.appendChild(link);
+  }
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+function findAnswer(text) {
+  const lower = text.toLowerCase();
+  let best = null, bestScore = 0;
+  for (const item of KB) {
+    let score = 0;
+    for (const kw of item.keywords) {
+      if (lower.includes(kw.toLowerCase())) score++;
+    }
+    if (score > bestScore) { bestScore = score; best = item; }
+  }
+  return bestScore > 0 ? best.answer : FALLBACK;
+}
+
+// Tries the real backend (Claude API) first; falls back to local
+// keyword-matching if the backend isn't deployed/reachable (e.g. when this
+// file is opened directly, or the /api function isn't running).
+async function getAnswer(text) {
+  try {
+    const res = await fetch('/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: text })
+    });
+    if (!res.ok) throw new Error('Backend returned ' + res.status);
+    const data = await res.json();
+    if (data.answer) return data.answer;
+    throw new Error('No answer in response');
+  } catch (err) {
+    console.warn('Falling back to local knowledge base:', err.message);
+    return findAnswer(text);
+  }
+}
+
+function renderSuggestions() {
+  suggestionsEl.innerHTML = '';
+  const picks = [KB[0], KB[3], KB[6], KB[10]];
+  picks.forEach(item => {
+    const btn = document.createElement('button');
+    btn.textContent = item.question;
+    btn.onclick = () => {
+      chatInput.value = item.question;
+      chatForm.requestSubmit();
+    };
+    suggestionsEl.appendChild(btn);
+  });
+}
+
+chatForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = chatInput.value.trim();
+  if (!text) return;
+  addMessage(text, 'user');
+  chatInput.value = '';
+
+  const typingEl = document.createElement('div');
+  typingEl.className = 'msg bot';
+  typingEl.textContent = 'Thinking…';
+  chatLog.appendChild(typingEl);
+  chatLog.scrollTop = chatLog.scrollHeight;
+
+  getAnswer(text).then(answer => {
+    typingEl.remove();
+    addMessage(answer, 'bot', true);
+  });
+});
+
+addMessage("Hello! Ask me about tenant rights, consumer complaints, workplace issues, RTI, or domestic violence support — in your own words.", 'bot', false);
+renderSuggestions();
+
+// ---------- Learn about the law: detailed topics ----------
+const LAW_TOPICS = [
+  {
+    title: "Security deposit not returned",
+    category: "Tenant Rights",
+    overview: "A landlord must return your security deposit after you vacate, minus documented damage or unpaid dues. Delaying or withholding it without valid reason is not allowed in most states.",
+    law: "State Rent Control Acts / Model Tenancy Act, 2021 (where adopted)",
+    steps: [
+      "Send a written request (email or registered post) asking for the deposit, with a clear deadline.",
+      "Keep your rental agreement, move-out photos, and all messages as evidence.",
+      "If ignored, approach the Rent Authority (in states with the Model Tenancy Act) or file in Consumer/Rent Court.",
+      "For small amounts, a Lok Adalat (settlement court) can resolve it faster than a full court case."
+    ]
+  },
+  {
+    title: "Eviction without proper notice",
+    category: "Tenant Rights",
+    overview: "A landlord cannot force you out without following due process — proper written notice and, if needed, a court or rent-tribunal order.",
+    law: "State Rent Control Acts",
+    steps: [
+      "Check your rental agreement for the required notice period (usually 15–30 days).",
+      "Do not vacate under threat or force — illegal methods (cutting power/water, forced removal) are not valid eviction.",
+      "If served an eviction notice, respond in writing and consult a legal aid clinic before agreeing to leave.",
+      "If forced eviction is attempted, file a police complaint and approach the Rent Court."
+    ]
+  },
+  {
+    title: "Unfair rent increase",
+    category: "Tenant Rights",
+    overview: "Rent increases should follow what's agreed in your rental agreement — a landlord can't usually raise rent arbitrarily mid-term.",
+    law: "State Rent Control Acts / your rental agreement terms",
+    steps: [
+      "Re-check your signed agreement for any clause on annual increase percentage.",
+      "Request any proposed increase in writing before agreeing to pay it.",
+      "If the increase is outside agreed terms, you can contest it with the Rent Authority or in Rent Court."
+    ]
+  },
+  {
+    title: "Defective product / refused refund",
+    category: "Consumer Rights",
+    overview: "You have the right to a refund, replacement, or repair for defective goods, especially within the warranty period.",
+    law: "Consumer Protection Act, 2019",
+    steps: [
+      "Send a written complaint to the seller/company with proof of purchase and warranty details.",
+      "If unresolved, call the National Consumer Helpline (1915) for guidance.",
+      "File a complaint on the e-Daakhil portal (edaakhil.nic.in) — no lawyer required.",
+      "Claims go to the District, State, or National Consumer Commission depending on the amount involved."
+    ]
+  },
+  {
+    title: "Cheated by an online seller",
+    category: "Consumer Rights",
+    overview: "Online fraud is both a consumer matter (refund/replacement) and, if money was stolen, a cybercrime matter.",
+    law: "Consumer Protection Act, 2019 + Information Technology Act, 2000",
+    steps: [
+      "Save all chat logs, payment receipts, and screenshots immediately.",
+      "File a consumer complaint via the National Consumer Helpline (1915) or e-Daakhil portal.",
+      "If money was fraudulently taken, report separately at cybercrime.gov.in or call 1930.",
+      "Report the fraudulent listing/seller to the platform as well."
+    ]
+  },
+  {
+    title: "Salary not paid by employer",
+    category: "Workplace Rights",
+    overview: "Unpaid wages can be formally raised with your state's labour authority, which handles wage disputes for most employees.",
+    law: "Payment of Wages Act, 1936 / Code on Wages, 2019",
+    steps: [
+      "Gather your appointment letter, payslips, and written communication about the unpaid amount.",
+      "Raise a written complaint with your state's Labour Commissioner's office.",
+      "Many states allow filing via the Shram Suvidha portal.",
+      "A legal aid clinic can help draft the complaint if you're unsure how to word it."
+    ]
+  },
+  {
+    title: "Workplace harassment",
+    category: "Workplace Rights",
+    overview: "Every workplace with 10+ employees must have an Internal Complaints Committee (ICC) to handle sexual harassment complaints confidentially and promptly.",
+    law: "POSH Act (Sexual Harassment of Women at Workplace Act, 2013)",
+    steps: [
+      "File a written complaint with your workplace's ICC within 3 months of the incident (extendable in genuine cases).",
+      "If there's no ICC, approach the Local Complaints Committee set up by your district.",
+      "You're entitled to confidentiality during the process — retaliation against you is itself a violation.",
+      "A legal aid clinic can help you word the complaint and understand your rights during the inquiry."
+    ]
+  },
+  {
+    title: "Fired without proper notice or reason",
+    category: "Workplace Rights",
+    overview: "Termination terms are usually governed by your appointment letter and, for some categories of workers, labour law protections against arbitrary dismissal.",
+    law: "Industrial Disputes Act, 1947 (for eligible categories) / your appointment letter",
+    steps: [
+      "Keep your appointment letter, termination communication, and performance records.",
+      "Check whether your notice period and severance terms were honoured.",
+      "If not, raise it with the Labour Commissioner's office in your state.",
+      "For senior/managerial roles not covered by labour law, contract law and civil courts may apply instead — a legal aid clinic can clarify which applies to you."
+    ]
+  },
+  {
+    title: "Getting information from a government office",
+    category: "Civic Rights",
+    overview: "Any citizen can formally request information from a public authority, and the authority is legally bound to respond within a set time.",
+    law: "Right to Information Act, 2005",
+    steps: [
+      "Write a simple application stating exactly what information you need.",
+      "Pay the application fee (usually ₹10) via the relevant online portal or in person.",
+      "Submit to the Public Information Officer of that department — rtionline.gov.in for central government, or your state's RTI portal.",
+      "The department must respond within 30 days (48 hours for matters concerning life or liberty)."
+    ]
+  },
+  {
+    title: "How to file a consumer complaint",
+    category: "Consumer Rights",
+    overview: "Consumer complaints are designed to be filed without a lawyer, directly by the affected person.",
+    law: "Consumer Protection Act, 2019",
+    steps: [
+      "Collect proof of purchase, details of the issue, and evidence you tried resolving it with the seller.",
+      "File via the e-Daakhil portal (edaakhil.nic.in) or call the National Consumer Helpline (1915).",
+      "Choose the right forum: District Commission for smaller claims, State or National Commission for larger amounts.",
+      "Track your case status directly on the portal."
+    ]
+  },
+  {
+    title: "Getting free legal aid",
+    category: "Civic Rights",
+    overview: "Eligible groups — including women, SC/ST, people with low income, and others — can get a lawyer and court support at no cost.",
+    law: "Legal Services Authorities Act, 1987",
+    steps: [
+      "Call the NALSA helpline (15100) or visit your nearest District Legal Services Authority office.",
+      "Explain your issue and eligibility category — most low-income applicants qualify automatically.",
+      "You'll be assigned a panel lawyer or referred to mediation/Lok Adalat where appropriate.",
+      "Check the Find Legal Aid tab for your state's authority and contact details."
+    ]
+  },
+  {
+    title: "Facing domestic violence",
+    category: "Family & Safety",
+    overview: "You can seek protection, a stay in your shared household, and maintenance — even without filing a criminal case first.",
+    law: "Protection of Women from Domestic Violence Act, 2005",
+    steps: [
+      "Call the Women Helpline (181), available 24/7, for immediate support and safety guidance.",
+      "Approach a Protection Officer, the police, or file directly in a Magistrate's Court.",
+      "You can request a Protection Order, Residence Order, or Monetary Relief Order.",
+      "You do not need to have already left the home to apply for a protection order."
+    ]
+  },
+  {
+    title: "Police harassment or misconduct",
+    category: "Civic Rights",
+    overview: "Police must follow legal procedure when questioning, detaining, or arresting someone. Harassment, wrongful detention, or custodial violence are violations you can formally complain about.",
+    law: "Bharatiya Nagarik Suraksha Sanhita, 2023 (replaced the CrPC) + Protection of Human Rights Act, 1993",
+    steps: [
+      "Note the date, time, place, and the officer's name/badge number as soon as possible.",
+      "Know your rights: you can ask the grounds of arrest, inform a family member or friend, and consult a lawyer.",
+      "File a written complaint with the district's Superintendent of Police (SP), or via your State Police's online grievance portal.",
+      "For serious violations (custodial violence, wrongful detention), approach the State or National Human Rights Commission (nhrc.nic.in) or a Magistrate directly."
+    ]
+  },
+  {
+    title: "Landlord locked me out illegally",
+    category: "Tenant Rights",
+    overview: "A landlord cannot forcibly evict you by changing locks, removing belongings, or cutting utilities, regardless of any pending rent dispute.",
+    law: "State Rent Control Acts / general tenancy law",
+    steps: [
+      "File a police complaint immediately for wrongful confinement/trespass if locked out.",
+      "Approach the Rent Court or Magistrate for an urgent restoration order.",
+      "Keep the rental agreement, rent receipts, and any communication as evidence.",
+      "A legal aid clinic can help file for emergency relief."
+    ]
+  },
+  {
+    title: "Family property inheritance dispute",
+    category: "Property & Inheritance",
+    overview: "Inheritance rights depend on your personal law and whether the deceased left a valid will.",
+    law: "Hindu Succession Act, 1956 (as amended 2005) / Indian Succession Act, 1925 / applicable personal law",
+    steps: [
+      "Check whether a valid will exists; if not, succession follows your personal law's intestate rules.",
+      "Obtain a legal heir/succession certificate from the local civil court if needed to transfer assets.",
+      "If a family member is denying your rightful share, send a legal notice through a lawyer before filing a partition suit.",
+      "A legal aid clinic can advise on which personal law applies to your situation."
+    ]
+  },
+  {
+    title: "Neighbor encroaching on my land",
+    category: "Property & Inheritance",
+    overview: "Unauthorized occupation of your land by a neighbor can be challenged through revenue records and civil courts.",
+    law: "Civil Procedure Code / State Land Revenue laws",
+    steps: [
+      "Get your land measured and boundaries verified via the local revenue/survey office.",
+      "Send a legal notice to the encroacher demanding removal.",
+      "If unresolved, file a suit for injunction and possession in civil court.",
+      "Keep property documents (sale deed, mutation records) ready as evidence."
+    ]
+  },
+  {
+    title: "Facing cyberbullying or online harassment",
+    category: "Cyber & Digital Rights",
+    overview: "Persistent online harassment, threats, or stalking are punishable offences, separate from platform-level reporting.",
+    law: "Information Technology Act, 2000 + relevant provisions of the Bharatiya Nyaya Sanhita, 2023",
+    steps: [
+      "Take screenshots of the harassment with timestamps and usernames before blocking.",
+      "Report the content/account to the platform directly.",
+      "File a complaint at cybercrime.gov.in or call the Cyber Crime Helpline (1930).",
+      "For serious threats, also file a police complaint at your local station."
+    ]
+  },
+  {
+    title: "Intimate images shared without consent",
+    category: "Cyber & Digital Rights",
+    overview: "Sharing or threatening to share intimate images without consent is a serious criminal offence with fast-track reporting options.",
+    law: "Information Technology Act, 2000 (Section 66E) + Bharatiya Nyaya Sanhita, 2023",
+    steps: [
+      "Do not engage with the blackmailer or pay any demanded money.",
+      "Report immediately at cybercrime.gov.in (has a dedicated section for this) or call 1930.",
+      "Ask the platform to remove the content using its non-consensual content reporting tool.",
+      "File a police complaint — this is treated as a serious offence."
+    ]
+  },
+  {
+    title: "Lost money to an OTP/UPI scam",
+    category: "Cyber & Digital Rights",
+    overview: "Fast reporting significantly increases the chance of recovering funds lost to digital payment fraud.",
+    law: "Information Technology Act, 2000 + RBI guidelines on fraud reporting",
+    steps: [
+      "Call your bank's fraud helpline immediately to block further transactions.",
+      "Report within a few hours on the Cyber Crime Helpline (1930) or cybercrime.gov.in — early reporting can freeze the fraudulent transaction.",
+      "File a written complaint with your bank per RBI's limited liability guidelines.",
+      "Keep transaction SMS/screenshots as evidence."
+    ]
+  },
+  {
+    title: "My personal data was misused or leaked",
+    category: "Cyber & Digital Rights",
+    overview: "Organizations handling your personal data have obligations to protect it, and misuse can be reported.",
+    law: "Digital Personal Data Protection Act, 2023 + Information Technology Act, 2000",
+    steps: [
+      "Document how and where your data was misused.",
+      "File a complaint with the organization's Grievance Officer (companies handling data must have one).",
+      "Escalate to the Data Protection Board of India if unresolved, or file a complaint at cybercrime.gov.in.",
+      "For serious identity theft, also file a police complaint."
+    ]
+  },
+  {
+    title: "Police refusing to file my FIR",
+    category: "Criminal Matters",
+    overview: "Police are legally required to register an FIR for cognizable offences — refusal can be escalated.",
+    law: "Bharatiya Nagarik Suraksha Sanhita, 2023 (replaced CrPC Section 154)",
+    steps: [
+      "Submit your complaint in writing and ask for an acknowledgment/receiving stamp.",
+      "If refused, send the complaint by registered post to the Superintendent of Police, who can order registration.",
+      "You can also approach the Magistrate directly to direct police to register the FIR.",
+      "A legal aid clinic can help draft this application."
+    ]
+  },
+  {
+    title: "Understanding bail after arrest",
+    category: "Criminal Matters",
+    overview: "Bail can be applied for at different stages depending on the offence and custody status.",
+    law: "Bharatiya Nagarik Suraksha Sanhita, 2023 (bail provisions, replaced CrPC)",
+    steps: [
+      "For bailable offences, bail is a right — often granted by the police station itself.",
+      "For non-bailable offences, bail must be sought from a Magistrate or higher court.",
+      "If you anticipate arrest, apply for anticipatory bail in advance from the Sessions or High Court.",
+      "A free legal aid lawyer can be assigned if you can't afford one — ask at the police station or court."
+    ]
+  },
+  {
+    title: "A cheque I received has bounced",
+    category: "Criminal Matters",
+    overview: "A dishonoured cheque given toward a legally enforceable debt can lead to both a legal notice and a criminal case against the issuer.",
+    law: "Section 138, Negotiable Instruments Act, 1881",
+    steps: [
+      "Send a legal demand notice to the cheque issuer within 30 days of the bounce, demanding payment within 15 days.",
+      "If unpaid after the notice period, file a criminal complaint in the relevant Magistrate's Court within 1 month.",
+      "Keep the bounced cheque, bank return memo, and notice copies as evidence.",
+      "A lawyer or legal aid clinic can help draft the notice and complaint."
+    ]
+  },
+  {
+    title: "Someone is defaming me publicly",
+    category: "Criminal Matters",
+    overview: "Defamation — false statements harming your reputation — can be pursued as both a civil suit and a criminal complaint.",
+    law: "Bharatiya Nyaya Sanhita, 2023 (criminal defamation) + civil tort law",
+    steps: [
+      "Document the defamatory statement (screenshots, witnesses, publication details).",
+      "Send a legal notice demanding retraction/apology before escalating.",
+      "File a criminal complaint with the Magistrate, or a civil suit for damages, depending on your goal.",
+      "For online defamation, also report to the platform for content removal."
+    ]
+  },
+  {
+    title: "Builder delaying possession of my flat",
+    category: "Consumer Rights",
+    overview: "Registered real estate projects must meet promised timelines, and delays can be compensated under RERA.",
+    law: "Real Estate (Regulation and Development) Act, 2016 (RERA)",
+    steps: [
+      "Check if the project is registered with your state's RERA authority (usually searchable online).",
+      "File a complaint on your state RERA portal, citing the agreement's promised possession date.",
+      "RERA can order compensation, interest on delay, or refund with interest.",
+      "Keep your builder-buyer agreement and payment receipts as evidence."
+    ]
+  },
+  {
+    title: "Facing medical negligence",
+    category: "Consumer Rights",
+    overview: "Patients harmed by negligent medical treatment can seek compensation through consumer forums or civil courts.",
+    law: "Consumer Protection Act, 2019 + Indian Medical Council regulations",
+    steps: [
+      "Collect all medical records, prescriptions, and reports related to the treatment.",
+      "File a complaint with the State Medical Council against the doctor/hospital for professional misconduct.",
+      "Simultaneously, file a consumer complaint (via e-Daakhil) seeking compensation for negligent service.",
+      "For serious harm, consult a lawyer about a separate civil suit for damages."
+    ]
+  },
+  {
+    title: "My insurance claim was wrongly rejected",
+    category: "Consumer Rights",
+    overview: "Insurers must justify claim rejections, and unfair denials can be challenged through the insurance ombudsman or consumer forum.",
+    law: "Insurance Act, 1938 + Consumer Protection Act, 2019",
+    steps: [
+      "Request the rejection reason in writing from the insurer.",
+      "File a complaint with the Insurance Ombudsman (free, no lawyer needed) if you disagree with the reason.",
+      "Alternatively or additionally, file a consumer complaint via e-Daakhil for deficiency in service.",
+      "Keep your policy document, claim form, and all correspondence as evidence."
+    ]
+  },
+  {
+    title: "Bank/recovery agents harassing me over a loan",
+    category: "Consumer Rights",
+    overview: "Recovery agents must follow RBI's fair practices code — threats, public humiliation, or odd-hour contact aren't permitted.",
+    law: "RBI Fair Practices Code for lenders",
+    steps: [
+      "Document the harassment (call recordings, messages, times of contact).",
+      "File a written complaint with the bank's Grievance Redressal Officer.",
+      "If unresolved, escalate to the RBI Banking Ombudsman (free, no lawyer needed).",
+      "You can also file a police complaint if agents use threats or intimidation."
+    ]
+  },
+  {
+    title: "Employer withholding dues over notice period",
+    category: "Workplace Rights",
+    overview: "Employers generally can't withhold your full and final settlement indefinitely over notice period disagreements, though a proportionate deduction per your contract may apply.",
+    law: "Your employment contract + Shops and Establishments Act (state-specific)",
+    steps: [
+      "Review your appointment letter for the exact notice period and buyout clause.",
+      "Request your full and final settlement and relieving letter in writing, referencing the contract terms.",
+      "If withheld unreasonably, raise a complaint with the Labour Commissioner's office or Shops and Establishments authority.",
+      "Keep resignation email, contract, and follow-up communication as evidence."
+    ]
+  },
+  {
+    title: "Rights as a contract or gig worker",
+    category: "Workplace Rights",
+    overview: "Contract and gig workers have more limited protections than full-time employees, but coverage is expanding under newer laws.",
+    law: "Code on Social Security, 2020 (gig worker provisions, being rolled out state-wise)",
+    steps: [
+      "Check if your platform/company is registered for gig worker welfare schemes in your state.",
+      "For contract workers under a principal employer, check the Contract Labour Act for minimum wage and safety compliance.",
+      "Unpaid dues can still be raised with the Labour Commissioner's office.",
+      "A legal aid clinic can help assess which protections apply to your specific work arrangement."
+    ]
+  },
+  {
+    title: "Being paid below minimum wage",
+    category: "Workplace Rights",
+    overview: "Every state sets minimum wages by job category, and employers must comply regardless of company size.",
+    law: "Code on Wages, 2019 (subsuming the Minimum Wages Act)",
+    steps: [
+      "Check your state's notified minimum wage for your job category/skill level.",
+      "Keep payslips or any wage records as proof of underpayment.",
+      "File a complaint with your state's Labour Commissioner's office.",
+      "Group complaints (with coworkers facing the same issue) are permitted and can be more effective."
+    ]
+  },
+  {
+    title: "Understanding the divorce process",
+    category: "Family & Safety",
+    overview: "Divorce can be mutual (both spouses agree) or contested, with different laws applying based on the couple's religion.",
+    law: "Hindu Marriage Act, 1955 / Special Marriage Act, 1954 / other personal laws",
+    steps: [
+      "Determine which law applies based on how your marriage was registered/solemnized.",
+      "For mutual consent divorce, both spouses jointly file a petition — typically faster (a cooling-off period may apply).",
+      "For contested divorce, grounds like cruelty or desertion must be proven in Family Court.",
+      "A legal aid clinic can provide a free lawyer if you're eligible, or help you understand costs otherwise."
+    ]
+  },
+  {
+    title: "Child custody during separation or divorce",
+    category: "Family & Safety",
+    overview: "Custody decisions are made based on the child's best interests, not automatically favoring either parent.",
+    law: "Guardians and Wards Act, 1890 / Hindu Minority and Guardianship Act, 1956 (or applicable personal law)",
+    steps: [
+      "File a custody petition in Family Court, either as part of divorce proceedings or separately.",
+      "Courts consider the child's age, needs, and often their preference if old enough.",
+      "Interim custody/visitation arrangements can be requested while the case is pending.",
+      "Mediation is often encouraged before a contested custody battle — legal aid clinics can guide you here."
+    ]
+  },
+  {
+    title: "Elderly parent being neglected or abused by family",
+    category: "Family & Safety",
+    overview: "Senior citizens have a legal right to maintenance from their children, and can even reclaim property transferred under a promise of care if that care is denied.",
+    law: "Maintenance and Welfare of Parents and Senior Citizens Act, 2007",
+    steps: [
+      "File an application for maintenance before the Maintenance Tribunal set up in each district (no lawyer required, designed to be fast).",
+      "If property was transferred to children on the condition of being cared for, and that condition isn't honoured, the transfer can be challenged and reversed under the Act.",
+      "Call the Senior Citizens' Helpline (14567) for immediate guidance and support.",
+      "Serious abuse can also be reported to the police."
+    ]
+  },
+  {
+    title: "Rights in a live-in relationship",
+    category: "Family & Safety",
+    overview: "Courts have recognized certain rights for partners in a live-in relationship resembling marriage, including protection from domestic violence.",
+    law: "Protection of Women from Domestic Violence Act, 2005 (covers 'relationships in the nature of marriage') + case law",
+    steps: [
+      "The Domestic Violence Act's protections (protection orders, residence rights, monetary relief) extend to live-in relationships resembling marriage.",
+      "Maintenance claims are more case-specific and depend on the nature and duration of the relationship — a lawyer can assess this.",
+      "Any children from the relationship have the same legal rights as those born in marriage.",
+      "A legal aid clinic can help evaluate your specific situation."
+    ]
+  },
+  {
+    title: "Reporting corruption or wrongdoing as a whistleblower",
+    category: "Civic Rights",
+    overview: "People who report corruption in government are legally protected from retaliation, though private-sector whistleblower protection is more limited.",
+    law: "Whistle Blowers Protection Act, 2014 (for government-related complaints)",
+    steps: [
+      "For government corruption, file a complaint with the Central Vigilance Commission (cvc.gov.in) or your state's Lokayukta.",
+      "Complaints can often be filed confidentially to protect your identity.",
+      "For private-sector fraud, check if your company has an internal whistleblower policy or ethics hotline.",
+      "Serious financial fraud can also be reported to SEBI (for listed companies) or the Serious Fraud Investigation Office."
+    ]
+  }
+];
+
+const learnList = document.getElementById('learnList');
+const learnSearch = document.getElementById('learnSearch');
+const learnCategory = document.getElementById('learnCategory');
+
+const learnCategories = [...new Set(LAW_TOPICS.map(t => t.category))];
+learnCategories.forEach(cat => {
+  const opt = document.createElement('option');
+  opt.value = cat;
+  opt.textContent = cat;
+  learnCategory.appendChild(opt);
+});
+
+function renderLearn() {
+  const q = learnSearch.value.trim().toLowerCase();
+  const catFilter = learnCategory.value;
+  const filtered = LAW_TOPICS.filter(t => {
+    const matchesCat = !catFilter || t.category === catFilter;
+    const haystack = (t.title + ' ' + t.category + ' ' + t.overview + ' ' + t.law).toLowerCase();
+    const matchesQuery = !q || haystack.includes(q);
+    return matchesCat && matchesQuery;
+  });
+
+  learnList.innerHTML = '';
+  if (filtered.length === 0) {
+    learnList.innerHTML = '<div class="empty-state">No matching topics. Try a different search term.</div>';
+    return;
+  }
+  filtered.forEach((t, i) => {
+    const details = document.createElement('details');
+    details.className = 'learn-item';
+    const stepsHtml = t.steps.map(s => `<li>${s}</li>`).join('');
+    details.innerHTML = `
+      <summary>
+        <div class="lt-title">
+          <h3>${t.title}</h3>
+          <div class="lt-cat">${t.category}</div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="learn-body">
+        <p>${t.overview}</p>
+        <h4>Relevant law</h4>
+        <span class="law-name">${t.law}</span>
+        <h4>What you can do</h4>
+        <ol>${stepsHtml}</ol>
+        <div class="help-note" data-idx="${i}">Find legal aid for this →</div>
+      </div>
+    `;
+    details.querySelector('.help-note').addEventListener('click', (e) => {
+      e.preventDefault();
+      switchView('directory');
+    });
+    learnList.appendChild(details);
+  });
+}
+
+learnSearch.addEventListener('input', renderLearn);
+learnCategory.addEventListener('change', renderLearn);
+renderLearn();
+
+// ---------- Directory logic ----------
+const dirSearch = document.getElementById('dirSearch');
+const dirCity = document.getElementById('dirCity');
+const aidList = document.getElementById('aidList');
+
+const cities = [...new Set(AID_CENTERS.map(c => c.city))];
+cities.forEach(city => {
+  const opt = document.createElement('option');
+  opt.value = city;
+  opt.textContent = city;
+  dirCity.appendChild(opt);
+});
+
+function renderDirectory() {
+  const q = dirSearch.value.trim().toLowerCase();
+  const cityFilter = dirCity.value;
+  const filtered = AID_CENTERS.filter(c => {
+    const matchesCity = !cityFilter || c.city === cityFilter;
+    const haystack = (c.name + ' ' + c.city + ' ' + c.tags.join(' ') + ' ' + c.desc).toLowerCase();
+    const matchesQuery = !q || haystack.includes(q);
+    return matchesCity && matchesQuery;
+  });
+
+  aidList.innerHTML = '';
+  if (filtered.length === 0) {
+    aidList.innerHTML = '<div class="empty-state">No matches yet. Try a different city or search term.</div>';
+    return;
+  }
+  filtered.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'aid-item';
+    item.innerHTML = `
+      <h3>${c.name}</h3>
+      <div class="aid-meta">
+        <span class="tag">${c.city}</span>
+        ${c.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+      </div>
+      <p class="desc">${c.desc}</p>
+      <div class="contact">${c.contact}</div>
+    `;
+    aidList.appendChild(item);
+  });
+}
+
+dirSearch.addEventListener('input', renderDirectory);
+dirCity.addEventListener('change', renderDirectory);
+renderDirectory();
+
+// ---------- Theme toggle ----------
+const MOON_PATH = '<path d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 1 0 20.354 15.354Z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>';
+const SUN_PATH = '<circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.6"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.55 1.55M18.25 18.25l1.55 1.55M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.55-1.55M18.25 5.75l1.55-1.55" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>';
+
+const root = document.documentElement;
+const themeIcon = document.getElementById('themeIcon');
+const themeToggle = document.getElementById('themeToggle');
+
+function prefersDark() {
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function applyTheme(theme) {
+  root.setAttribute('data-theme', theme);
+  themeIcon.innerHTML = theme === 'dark' ? SUN_PATH : MOON_PATH;
+  try { localStorage.setItem('legalassistant-theme', theme); } catch (e) {}
+}
+
+let savedTheme = null;
+try { savedTheme = localStorage.getItem('legalassistant-theme'); } catch (e) {}
+applyTheme(savedTheme || (prefersDark() ? 'dark' : 'light'));
+
+themeToggle.addEventListener('click', () => {
+  const current = root.getAttribute('data-theme');
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+});
+
+function switchView(view) {
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
+}
+document.querySelectorAll('nav.tabs button').forEach(btn => {
+  btn.addEventListener('click', () => switchView(btn.dataset.view));
+});
+</script>
+
+</body>
+</html>

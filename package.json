@@ -1,0 +1,6 @@
+{
+  "name": "legalassistant-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Backend for LegalAssistant - answers legal questions using the free Google Gemini API"
+}
