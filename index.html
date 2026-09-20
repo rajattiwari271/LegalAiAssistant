@@ -770,7 +770,7 @@ function findAnswer(text) {
   return bestScore > 0 ? best.answer : FALLBACK;
 }
 
-// Tries the real backend (Claude API) first; falls back to local
+// Tries the real backend (Gemini API) first; falls back to local
 // keyword-matching if the backend isn't deployed/reachable (e.g. when this
 // file is opened directly, or the /api function isn't running).
 async function getAnswer(text) {
